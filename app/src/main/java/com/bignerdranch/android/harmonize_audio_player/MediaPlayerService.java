@@ -43,6 +43,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
+    private String repeat = "notRepeat";
+
     //List of available Audio files
     private ArrayList<Audio> audioList;
     private int audioIndex = -1;
@@ -347,6 +349,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 updateMetaData();
                 buildNotification(PlaybackStatus.PLAYING,true);
             }
+            else if (controlMessage.equals("repeat")){
+                repeat = "repeat";
+            }
+            else if (controlMessage.equals("stopRepeat")){
+                repeat = "notRepeat";
+            }
             else{
                 pauseMedia();
                 updateMetaData();
@@ -452,9 +460,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        skipToNext();
-        updateMetaData();
-        buildNotification(PlaybackStatus.PLAYING,true);
+        if(repeat.equals("repeat")){
+            playMedia();
+        }
+        else {
+            skipToNext();
+            updateMetaData();
+            buildNotification(PlaybackStatus.PLAYING, true);
+        }
     }
 
     @Override

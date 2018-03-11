@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<RelativeLayout xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:backgroundTint="@color/cardview_dark_background"
-    android:background="@drawable/image"
-    android:backgroundTintMode="screen"
     xmlns:android="http://schemas.android.com/apk/res/android" >
 
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="240dp"
-        android:layout_height="240dp"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="78dp"
+        android:layout_marginTop="21dp"
         android:background="@drawable/image" />
 
     <TextView
@@ -22,18 +19,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 
-        android:layout_above="@+id/musicArtist"
-        android:layout_marginBottom="58dp"
-        android:layout_toEndOf="@+id/next_button"
+        android:layout_alignStart="@+id/musicArtist"
+        android:layout_below="@+id/imageView"
+        android:layout_marginTop="41dp"
         android:text="Music Name" />
 
     <TextView
         android:id="@+id/musicArtist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/seek_bar"
-        android:layout_alignStart="@+id/musicName"
-        android:layout_marginBottom="59dp"
+
+        android:layout_below="@id/musicName"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="40dp"
         android:text="Music Artist" />
 
 
@@ -41,51 +39,59 @@
         android:id="@+id/seek_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/pause_button"
-         />
+        android:layout_above="@+id/play_button"
+        android:layout_marginBottom="28dp" />
 
-    <Button
+    <ImageView
         android:id="@+id/play_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="27dp"
-        android:gravity="center"
+        android:layout_alignTop="@+id/next_button"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/ic_play_arrow_black_24dp"
         android:text="Play" />
 
-    <Button
+    <ImageView
         android:id="@+id/next_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/play_button"
-        android:layout_alignBottom="@+id/play_button"
-        android:layout_toEndOf="@+id/play_button"
-        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp"
+        android:layout_marginStart="56dp"
+        android:layout_toEndOf="@+id/musicArtist"
+        android:background="@drawable/ic_skip_next_black_24dp"
         android:text="Next" />
 
-    <Button
+    <ImageView
         android:id="@+id/prev_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-
-        android:layout_alignTop="@+id/next_button"
-        android:layout_marginStart="17dp"
-        android:layout_marginTop="10dp"
-        android:layout_toEndOf="@+id/next_button"
-        android:gravity="center"
+        android:layout_alignTop="@+id/play_button"
+        android:layout_marginEnd="73dp"
+        android:layout_toStartOf="@+id/play_button"
+        android:background="@drawable/ic_skip_previous_black_24dp"
         android:text="Previous" />
 
-    <Button
-        android:id="@+id/pause_button"
+    <ImageView
+        android:id="@+id/repeat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/prev_button"
-        android:layout_alignBottom="@+id/prev_button"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="8dp"
-        android:text="Pause" />
 
+        android:layout_alignStart="@+id/imageView"
+        android:layout_alignTop="@+id/mute"
+        android:layout_marginStart="6dp"
+        android:layout_marginTop="7dp"
+        app:srcCompat="@drawable/ic_repeat_black_24dp" />
+
+    <ImageView
+        android:id="@+id/mute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/imageView"
+        android:layout_alignTop="@+id/musicArtist"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="27dp"
+        app:srcCompat="@drawable/ic_volume_mute_black_24dp" />
 
 
 </RelativeLayout>
