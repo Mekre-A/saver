@@ -31,6 +31,7 @@ import android.media.session.MediaController;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class MediaPlayerService extends Service implements MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener,MediaPlayer.OnErrorListener,MediaPlayer.OnSeekCompleteListener,MediaPlayer.OnInfoListener,MediaPlayer.OnBufferingUpdateListener, AudioManager.OnAudioFocusChangeListener {
 
@@ -39,11 +40,18 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private String mediaFile;
     private int resumePosition;
     private AudioManager audioManager;
+
     private boolean ongoingCall = false;
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
-    private String repeat = "notRepeat";
+    private String repeat = "stopRepeat";
+
+    public String TOWARDS_SOLO = "SEND DATA";
+
+    private Boolean shuffle = false;
+
+    public static Boolean isPlaying = false;
 
     //List of available Audio files
     private ArrayList<Audio> audioList;
@@ -105,6 +113,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 super.onPlay();
                 resumeMedia();
                 buildNotification(PlaybackStatus.PLAYING,true);
+                sendToSoloIntent("changePlayPause",-1);
             }
 
             @Override
@@ -112,6 +121,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 super.onPause();
                 pauseMedia();
                 buildNotification(PlaybackStatus.PAUSED,false);
+                sendToSoloIntent("changePlayPause",-1);
             }
 
             @Override
@@ -255,17 +265,43 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .build());
     }
 
+    private Integer shuffler(Integer currentPosition,Integer audioSize){
+        Integer returnValue = 0;
+        Random r = new Random();
+        int shuffleNumber = r.nextInt(audioList.size() - 0) + 0;
+
+        returnValue = currentPosition + shuffleNumber;
+        if(returnValue >= audioSize){
+            returnValue = returnValue %(audioSize - 1);
+            return returnValue;
+        }
+        else{
+            return returnValue;
+        }
+
+    }
+
     private void skipToNext() {
 
              resumeChecker = null;
 
+
             if (audioIndex == audioList.size() - 1) {
                 //if last in playlist
                 audioIndex = 0;
+                if(shuffle) {
+                    audioIndex = shuffler(audioIndex,audioList.size());
+                }
                 activeAudio = audioList.get(audioIndex);
             } else {
                 //get next in playlist
-                activeAudio = audioList.get(++audioIndex);
+                if(shuffle) {
+                    audioIndex = shuffler(audioIndex,audioList.size());
+                    activeAudio = audioList.get(audioIndex);
+                }
+                else {
+                    activeAudio = audioList.get(++audioIndex);
+                }
             }
 
             //Update stored index
@@ -275,6 +311,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             //reset mediaPlayer
             mediaPlayer.reset();
             initMediaPlayer();
+        sendToSoloIntent("sendMusicName",-1);
     }
 
     private void skipToPrevious() {
@@ -298,6 +335,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         //reset mediaPlayer
         mediaPlayer.reset();
         initMediaPlayer();
+        sendToSoloIntent("sendMusicName",-1);
     }
 
 
@@ -328,6 +366,29 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     };
 
+    private void sendToSoloIntent(String message, Integer duration){
+        Intent broadcastIntent = new Intent(TOWARDS_SOLO);
+        Log.i("Hey",message);
+        if(message.equals("changePlayPause")){
+            broadcastIntent.putExtra("FromService",message);
+            broadcastIntent.putExtra("changeIcon",message);
+
+        }
+        else if(message.equals("sendMusicName")){
+            broadcastIntent.putExtra("FromService",message);
+            broadcastIntent.putExtra("MusicName",audioList.get(audioIndex).getTitle());
+        }
+        else if(message.equals("getCurrentPosition")){
+            broadcastIntent.putExtra("FromService",message);
+            broadcastIntent.putExtra(message,duration);
+        }
+        else{
+            broadcastIntent.putExtra("FromService",message);
+            broadcastIntent.putExtra("duration",duration);
+        }
+        sendBroadcast(broadcastIntent);
+    }
+
     private BroadcastReceiver playControls = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -345,15 +406,43 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             }
 
             else if(controlMessage.equals("Play")){
-                resumeMedia();
-                updateMetaData();
-                buildNotification(PlaybackStatus.PLAYING,true);
+                if(requestAudioFocus()){
+                    resumeMedia();
+                    updateMetaData();
+                    buildNotification(PlaybackStatus.PLAYING,true);
+                }
+                else {
+
+                }
+
             }
             else if (controlMessage.equals("repeat")){
                 repeat = "repeat";
+                shuffle = false;
             }
             else if (controlMessage.equals("stopRepeat")){
-                repeat = "notRepeat";
+                repeat = "stopRepeat";
+                shuffle = false;
+            }
+            else if (controlMessage.equals("silenceMusic")){
+                mediaPlayer.setVolume(0,0);
+            }
+            else if(controlMessage.equals("unSilenceMusic")){
+                mediaPlayer.setVolume(1,1);
+            }
+
+            else if(controlMessage.equals("shuffle")){
+                shuffle = true;
+            }
+
+            else if(controlMessage.equals("getCurrentPosition")){
+                sendToSoloIntent("currentPositionSeek",mediaPlayer.getCurrentPosition());
+            }
+            else if(controlMessage.equals("seekChange")){
+                mediaPlayer.seekTo(intent.getExtras().getInt("seekBarChange"));
+                if(!mediaPlayer.isPlaying()){
+                    resumePosition = intent.getExtras().getInt("seekBarChange");
+                }
             }
             else{
                 pauseMedia();
@@ -387,6 +476,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         if(!mediaPlayer.isPlaying()){
             mediaPlayer.start();
             resumeChecker = null;
+            sendToSoloIntent("nothingHere",mediaPlayer.getDuration());
+            isPlaying = true;
+            if(SoloMusicActivity.playPause.equals("notPlaying")){
+                sendToSoloIntent("changePlayPause",-1);
+            }
         }
     }
     private void stopMedia(){
@@ -394,6 +488,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         if(mediaPlayer == null) return;
         if(mediaPlayer.isPlaying()){
             mediaPlayer.stop();
+            isPlaying = false;
         }
 
     }
@@ -405,6 +500,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             resumePosition = mediaPlayer.getCurrentPosition();
             resumeChecker = "data";
             resumeMusic = audioIndex;
+            isPlaying = false;
 
         }
     }
@@ -414,6 +510,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
          if(!mediaPlayer.isPlaying()){
             mediaPlayer.seekTo(resumePosition);
             mediaPlayer.start();
+            isPlaying = true;
+            if(SoloMusicActivity.playPause.equals("notPlaying")){
+                sendToSoloIntent("changePlayPause",-1);
+            }
+
         }
     }
 
@@ -460,10 +561,28 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        if(repeat.equals("repeat")){
+        if(shuffle) {
+            skipToNext();
+            updateMetaData();
+            buildNotification(PlaybackStatus.PLAYING, true);
+        }
+
+        else if(repeat.equals("repeat")){
             playMedia();
         }
-        else {
+        else if(repeat.equals("stopRepeat")){
+            if(audioIndex == (audioList.size() - 1)){
+                pauseMedia();
+                removeNotification();
+                sendToSoloIntent("changePlayPause",-2);
+            }
+            else{
+                skipToNext();
+                updateMetaData();
+                buildNotification(PlaybackStatus.PLAYING, true);
+            }
+        }
+        else{
             skipToNext();
             updateMetaData();
             buildNotification(PlaybackStatus.PLAYING, true);
@@ -517,7 +636,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 Log.i("focusgot","focus got");
                 buildNotification(PlaybackStatus.PAUSED,false);
                 // Lost focus for an unbounded amount of time: stop playback and release media player
+                if(mediaPlayer.isPlaying()){
+                    sendToSoloIntent("changePlayPause",-1);
+                }
                 pauseMedia();
+
 
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
@@ -526,11 +649,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 // is likely to resume
                 if (mediaPlayer.isPlaying()) mediaPlayer.pause();
                 break;
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                // Lost focus for a short time, but it's ok to keep playing
-                // at an attenuated level
-                if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
-                break;
+//            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+//                // Lost focus for a short time, but it's ok to keep playing
+//                // at an attenuated level
+//
+//                if (mediaPlayer.isPlaying()) {
+//                    mediaPlayer.setVolume(0.1f, 0.1f);
+//
+//                }
+//                break;
         }
     }
 
@@ -636,8 +763,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         @Override
         public void onReceive(Context context, Intent intent) {
             //pause audio on ACTION_AUDIO_BECOMING_NOISY
+            if(mediaPlayer.isPlaying()){
+                sendToSoloIntent("changePlayPause",-1);
+            }
             pauseMedia();
+
             buildNotification(PlaybackStatus.PAUSED,true);
+
+
         }
     };
 
@@ -663,6 +796,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         if (mediaPlayer != null) {
                             pauseMedia();
                             ongoingCall = true;
+                            sendToSoloIntent("changePlayPause",-1);
                         }
                         break;
                     case TelephonyManager.CALL_STATE_IDLE:
@@ -671,6 +805,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                             if (ongoingCall) {
                                 ongoingCall = false;
                                 resumeMedia();
+                                sendToSoloIntent("changePlayPause",-1);
                             }
                         }
                         break;
