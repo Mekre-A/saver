@@ -2,17 +2,18 @@
 <RelativeLayout xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
     xmlns:android="http://schemas.android.com/apk/res/android" >
 
-
-    <ImageView
-        android:id="@+id/imageView"
+    <FrameLayout
+        android:id="@+id/fragmentHolder"
         android:layout_width="250dp"
         android:layout_height="250dp"
-        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="21dp"
-        android:background="@drawable/image" />
+        >
+
+    </FrameLayout>
+
 
     <TextView
         android:id="@+id/musicName"
@@ -20,7 +21,7 @@
         android:layout_height="wrap_content"
 
         android:layout_alignStart="@+id/musicArtist"
-        android:layout_below="@+id/imageView"
+        android:layout_below="@+id/fragmentHolder"
         android:layout_marginTop="41dp"
         android:text="Music Name" />
 
@@ -28,7 +29,6 @@
         android:id="@+id/musicArtist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-
         android:layout_below="@id/musicName"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="40dp"
@@ -40,6 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/play_button"
+        android:scrollbarStyle="insideOverlay"
         android:layout_marginBottom="28dp" />
 
     <ImageView
@@ -76,7 +77,6 @@
         android:id="@+id/repeat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-
         android:layout_alignStart="@+id/prev_button"
         android:layout_alignTop="@+id/mute"
         android:background="@drawable/ic_repeat_black_24dp" />
@@ -85,7 +85,7 @@
         android:id="@+id/mute"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/imageView"
+        android:layout_alignEnd="@+id/fragmentHolder"
         android:layout_below="@+id/musicName"
         android:layout_marginTop="45dp"
         android:background="@drawable/ic_volume_up_black_24dp" />

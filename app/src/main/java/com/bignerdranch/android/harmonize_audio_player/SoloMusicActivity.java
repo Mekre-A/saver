@@ -1,23 +1,39 @@
 package com.bignerdranch.android.harmonize_audio_player;
 
+import android.annotation.SuppressLint;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.drawable.Drawable;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.MediaController;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SoloMusicActivity extends AppCompatActivity {
 
@@ -33,6 +49,8 @@ public class SoloMusicActivity extends AppCompatActivity {
     Boolean muted = false;
     SeekBar seek;
     int seekbarChange = 0;
+    FrameLayout fragmentLayout;
+
 
 
     private void sendControlIntent(String message){
@@ -63,12 +81,17 @@ public class SoloMusicActivity extends AppCompatActivity {
                 Integer newPosition = intent.getExtras().getInt("duration");
                 seek.setProgress(newPosition);
             }
+            else if(controlMessage.equals("changingLayout")){
+                textview1.setText(intent.getExtras().getString("resumingMusic"));
+            }
             else{
                 if(playPause.equals("notPlaying")){
+                    Log.i("life","bitch upstairs");
                     play.setBackgroundResource(R.drawable.ic_pause_black_24dp);
                     playPause = "playing";
                 }
                 else{
+                    Log.i("life","bitch from solo");
                     play.setBackgroundResource(R.drawable.ic_play_arrow_black_24dp);
                     playPause = "notPlaying";
                 }
@@ -83,6 +106,9 @@ public class SoloMusicActivity extends AppCompatActivity {
         registerReceiver(getContentFromService, filter);
     }
 
+
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,6 +128,29 @@ public class SoloMusicActivity extends AppCompatActivity {
 
             }
 
+        });
+
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        final ImageFragment fragmentImage = new ImageFragment();
+        final LyricsFragment lyricsFragment = new LyricsFragment();
+
+       transaction.add(R.id.fragmentHolder, fragmentImage,"image");
+        transaction.commit();
+
+        fragmentLayout = (FrameLayout)findViewById(R.id.fragmentHolder);
+        fragmentLayout.setOnLongClickListener(new FrameLayout.OnLongClickListener(){
+
+            public boolean onLongClick(View v){
+
+                if(getFragmentManager().findFragmentByTag("image") != null ){
+                    Log.i("This","actually works");
+                    getFragmentManager().beginTransaction().replace(R.id.fragmentHolder,lyricsFragment,"lyric").commit();
+                }
+                else{
+                    getFragmentManager().beginTransaction().replace(R.id.fragmentHolder,fragmentImage,"image").commit();
+                }
+                return false;
+            }
         });
 
 
@@ -140,6 +189,7 @@ public class SoloMusicActivity extends AppCompatActivity {
         next.setOnClickListener(new ImageView.OnClickListener() {
                                     public void onClick(View V) {
                                         sendControlIntent("Next");
+
 
                                     }
                                 }
@@ -223,6 +273,63 @@ seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
     }
 });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState){
+        super.onSaveInstanceState(outState);
+            outState.putBoolean("playPause",MediaPlayerService.isPlaying);
+            outState.putString("audibility",MediaPlayerService.audibility);
+            if(MediaPlayerService.shuffle ){
+                outState.putString("shuffle","shuffle");
+            }
+            else{
+                if(MediaPlayerService.repeat.equals("stopRepeat")){
+                    outState.putString("shuffle","stopRepeat");
+                }
+                else{
+                    outState.putString("shuffle","repeat");
+                }
+            }
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState){
+        super.onRestoreInstanceState(savedInstanceState);
+        if(savedInstanceState != null){
+            if(!savedInstanceState.getBoolean("playPause")) {
+                Log.i("life","faatBitch");
+                play.setBackgroundResource(R.drawable.ic_play_arrow_black_24dp);
+            }
+            else{
+                play.setBackgroundResource(R.drawable.ic_pause_black_24dp);
+            }
+
+            if(savedInstanceState.getString("audibility").equals("notSilent")) {
+                silent.setBackgroundResource(R.drawable.ic_volume_up_black_24dp);
+            }
+            else{
+                silent.setBackgroundResource(R.drawable.ic_volume_mute_black_24dp);
+            }
+
+            if(savedInstanceState.getString("shuffle").equals("shuffle")) {
+                repeat.setBackgroundResource(R.drawable.ic_shuffle_black_24dp);
+            }
+            else{
+                if(savedInstanceState.getString("shuffle").equals("stopRepeat")){
+                    repeat.setBackgroundResource(R.drawable.ic_repeat_black_24dp);
+
+                }
+                else{
+                    repeat.setBackgroundResource(R.drawable.ic_repeat_one_black_24dp);
+
+                }
+
+            }
+            sendControlIntent("changingLayout");
+
+        }
     }
 
 }

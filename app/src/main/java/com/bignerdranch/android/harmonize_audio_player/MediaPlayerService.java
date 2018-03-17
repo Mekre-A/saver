@@ -37,7 +37,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     private final IBinder iBinder  = new LocalBinder();
     private MediaPlayer mediaPlayer;
-    private String mediaFile;
     private int resumePosition;
     private AudioManager audioManager;
 
@@ -45,11 +44,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
-    private String repeat = "stopRepeat";
+    public static String repeat = "stopRepeat";
 
     public String TOWARDS_SOLO = "SEND DATA";
 
-    private Boolean shuffle = false;
+    public static Boolean shuffle = false;
 
     public static Boolean isPlaying = false;
 
@@ -76,6 +75,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     //Notifier for resume position
     private static String resumeChecker = null;
     private static int resumeMusic;
+
+    public static String audibility = "notSilent";
 
     public enum PlaybackStatus {
         PLAYING,
@@ -113,7 +114,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 super.onPlay();
                 resumeMedia();
                 buildNotification(PlaybackStatus.PLAYING,true);
-                sendToSoloIntent("changePlayPause",-1);
+
             }
 
             @Override
@@ -121,7 +122,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 super.onPause();
                 pauseMedia();
                 buildNotification(PlaybackStatus.PAUSED,false);
-                sendToSoloIntent("changePlayPause",-1);
+
             }
 
             @Override
@@ -241,7 +242,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
                 .addAction(notificationAction, "pause", play_pauseAction)
                 .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2))
-
                 .build();
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -382,6 +382,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             broadcastIntent.putExtra("FromService",message);
             broadcastIntent.putExtra(message,duration);
         }
+        else if(message.equals("changingLayout")){
+            broadcastIntent.putExtra("FromService","changingLayout");
+            broadcastIntent.putExtra("resumingMusic",audioList.get(audioIndex).getTitle());
+        }
         else{
             broadcastIntent.putExtra("FromService",message);
             broadcastIntent.putExtra("duration",duration);
@@ -425,9 +429,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 shuffle = false;
             }
             else if (controlMessage.equals("silenceMusic")){
+                audibility = "silent";
                 mediaPlayer.setVolume(0,0);
             }
             else if(controlMessage.equals("unSilenceMusic")){
+                audibility = "notSilent";
                 mediaPlayer.setVolume(1,1);
             }
 
@@ -443,6 +449,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 if(!mediaPlayer.isPlaying()){
                     resumePosition = intent.getExtras().getInt("seekBarChange");
                 }
+            }
+            else if(controlMessage.equals("changingLayout")){
+                    sendToSoloIntent("changingLayout",-1);
+                sendToSoloIntent("nothingHere",mediaPlayer.getDuration());
             }
             else{
                 pauseMedia();
@@ -481,6 +491,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             if(SoloMusicActivity.playPause.equals("notPlaying")){
                 sendToSoloIntent("changePlayPause",-1);
             }
+            if(audibility.equals("silent")){
+                mediaPlayer.setVolume(0,0);
+            }
         }
     }
     private void stopMedia(){
@@ -489,6 +502,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         if(mediaPlayer.isPlaying()){
             mediaPlayer.stop();
             isPlaying = false;
+        }
+        if(audibility.equals("silent")){
+            mediaPlayer.setVolume(0,0);
         }
 
     }
@@ -501,6 +517,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             resumeChecker = "data";
             resumeMusic = audioIndex;
             isPlaying = false;
+            if(SoloMusicActivity.playPause.equals("playing")){
+                Log.i("life","bitch");
+                sendToSoloIntent("changePlayPause",-1);
+            }
+
+
 
         }
     }
@@ -514,7 +536,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             if(SoloMusicActivity.playPause.equals("notPlaying")){
                 sendToSoloIntent("changePlayPause",-1);
             }
-
+            // Time Stamp;
+            Log.i("hello","nice " + mediaPlayer.getCurrentPosition() );
+             if(audibility.equals("silent")){
+                 mediaPlayer.setVolume(0,0);
+             }
         }
     }
 
@@ -574,7 +600,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             if(audioIndex == (audioList.size() - 1)){
                 pauseMedia();
                 removeNotification();
-                sendToSoloIntent("changePlayPause",-2);
+
             }
             else{
                 skipToNext();
@@ -636,9 +662,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 Log.i("focusgot","focus got");
                 buildNotification(PlaybackStatus.PAUSED,false);
                 // Lost focus for an unbounded amount of time: stop playback and release media player
-                if(mediaPlayer.isPlaying()){
-                    sendToSoloIntent("changePlayPause",-1);
-                }
+
                 pauseMedia();
 
 
@@ -763,9 +787,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         @Override
         public void onReceive(Context context, Intent intent) {
             //pause audio on ACTION_AUDIO_BECOMING_NOISY
-            if(mediaPlayer.isPlaying()){
-                sendToSoloIntent("changePlayPause",-1);
-            }
             pauseMedia();
 
             buildNotification(PlaybackStatus.PAUSED,true);
@@ -796,7 +817,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                         if (mediaPlayer != null) {
                             pauseMedia();
                             ongoingCall = true;
-                            sendToSoloIntent("changePlayPause",-1);
+
                         }
                         break;
                     case TelephonyManager.CALL_STATE_IDLE:
@@ -805,7 +826,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                             if (ongoingCall) {
                                 ongoingCall = false;
                                 resumeMedia();
-                                sendToSoloIntent("changePlayPause",-1);
+
                             }
                         }
                         break;

@@ -93,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
             while (cursor.moveToNext()) {
                 String data = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
                 String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-                Log.i("HEYY",title);
                 String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
                 String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
 
@@ -119,9 +118,9 @@ public class MainActivity extends AppCompatActivity {
 
             playAudio(position);
 
-
         }
     };
+
 
     private void register_playSelectedMusic() {
         //Register playNewMedia receiver
@@ -146,12 +145,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(playSelectedAudio);
-        if (serviceBound) {
-            unbindService(serviceConnection);
-            //service is active
-            player.stopSelf();
-        }
     }
 
     protected void makeRequest(){
