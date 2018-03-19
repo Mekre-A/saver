@@ -3,15 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
     xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <FrameLayout
         android:id="@+id/fragmentHolder"
         android:layout_width="250dp"
-        android:layout_height="250dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        >
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true">
 
     </FrameLayout>
 
@@ -20,23 +20,27 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_below="@+id/fragmentHolder"
-        android:layout_centerInParent="true"
-        android:layout_marginTop="30dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="34dp"
+        android:layout_marginTop="60dp"
+        android:layout_toEndOf="@+id/fragmentHolder"
+        android:layout_marginBottom="20dp"
         >
 
         <TextView
             android:id="@+id/musicName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="15sp"
             android:text="Music Name" />
 
         <TextView
             android:id="@+id/musicArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            
+            android:textSize="15sp"
             android:text="Music Artist" />
+
 
     </LinearLayout>
 
@@ -44,21 +48,20 @@
         android:id="@+id/seek_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/musicInfo"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginLeft="10dp"
-
-        />
+        android:layout_alignStart="@+id/controls"
+        android:layout_below="@+id/controls"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="-8dp"/>
 
     <LinearLayout
         android:id="@+id/controls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_below="@+id/seek_bar"
+        android:layout_toEndOf="@id/fragmentHolder"
         android:layout_centerInParent="true"
-        android:layout_marginTop="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="20dp"
         >
 
         <ImageView
@@ -102,6 +105,8 @@
             />
 
     </LinearLayout>
+
+
 
 
 

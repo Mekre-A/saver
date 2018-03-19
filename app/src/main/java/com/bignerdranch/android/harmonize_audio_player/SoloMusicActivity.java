@@ -39,6 +39,7 @@ public class SoloMusicActivity extends AppCompatActivity {
 
     public static final String CONTROL = "fromSolo";
     TextView textview1;
+    TextView textview2;
     ImageView next;
     ImageView prev;
     ImageView play;
@@ -76,6 +77,8 @@ public class SoloMusicActivity extends AppCompatActivity {
             }
             else if(controlMessage.equals("sendMusicName")){
                 textview1.setText(intent.getExtras().getString("MusicName"));
+                textview2.setText(intent.getExtras().getString("musicArtist"));
+
             }
             else if(controlMessage.equals("currentPositionSeek")){
                 Integer newPosition = intent.getExtras().getInt("duration");
@@ -161,8 +164,11 @@ public class SoloMusicActivity extends AppCompatActivity {
         String musicName = intentData.getString("musicName");
 
         textview1 = (TextView) findViewById(R.id.musicName);
+        textview2 = (TextView) findViewById(R.id.musicArtist);
+
         Log.d("Hey","drum" + position);
         textview1.setText(musicName);
+        textview2.setText(MainActivity.musicArtist);
         playPause = "playing";
 
 
@@ -217,7 +223,7 @@ public class SoloMusicActivity extends AppCompatActivity {
                 }
                 else if(repeating.equals("shuffle")){
                     sendControlIntent("stopRepeat");
-                    Toast.makeText(repeat.getContext(), "Repeating Current Music",
+                    Toast.makeText(repeat.getContext(), "Repeating Off",
                             Toast.LENGTH_SHORT).show();
                     repeating = "notRepeating";
                     repeat.setBackgroundResource(R.drawable.ic_repeat_black_24dp);
@@ -328,8 +334,63 @@ seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             }
             sendControlIntent("changingLayout");
+            Log.i("yeah","im here");
 
         }
+        else{
+            if(MediaPlayerService.audibility.equals("notSilent")) {
+                silent.setBackgroundResource(R.drawable.ic_volume_up_black_24dp);
+            }
+            else{
+                silent.setBackgroundResource(R.drawable.ic_volume_mute_black_24dp);
+            }
+            if(MediaPlayerService.shuffle.equals("shuffle")) {
+                repeat.setBackgroundResource(R.drawable.ic_shuffle_black_24dp);
+            }
+            else{
+                if(MediaPlayerService.repeat.equals("stopRepeat")){
+                    repeat.setBackgroundResource(R.drawable.ic_repeat_black_24dp);
+
+                }
+                else{
+                    repeat.setBackgroundResource(R.drawable.ic_repeat_one_black_24dp);
+
+                }
+
+            }
+
+        }
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(MediaPlayerService.audibility.equals("notSilent")) {
+            silent.setBackgroundResource(R.drawable.ic_volume_up_black_24dp);
+            muted = false;
+        }
+        else{
+            silent.setBackgroundResource(R.drawable.ic_volume_mute_black_24dp);
+            muted = true;
+        }
+        if(MediaPlayerService.shuffle.equals("shuffle")) {
+            repeat.setBackgroundResource(R.drawable.ic_shuffle_black_24dp);
+            repeating = "shuffle";
+        }
+        else{
+            if(MediaPlayerService.repeat.equals("stopRepeat")){
+                repeat.setBackgroundResource(R.drawable.ic_repeat_black_24dp);
+                repeating = "notRepeating";
+
+            }
+            else{
+                repeat.setBackgroundResource(R.drawable.ic_repeat_one_black_24dp);
+                repeating = "repeating";
+
+            }
+
+        }
+
     }
 
 }

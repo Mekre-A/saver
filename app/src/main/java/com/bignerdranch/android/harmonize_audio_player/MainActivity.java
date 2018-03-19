@@ -36,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
 
     boolean serviceBound  = false;
 
+    public static String musicArtist = null;
+
     ArrayList<Audio> audioList;
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.bignerdranch.android.harmonize_audio_player";
@@ -78,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
             Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
             sendBroadcast(broadcastIntent);
         }
+        musicArtist = audioList.get(audioIndex).getArtist().toString();
     }
 
     private boolean loadAudio() {

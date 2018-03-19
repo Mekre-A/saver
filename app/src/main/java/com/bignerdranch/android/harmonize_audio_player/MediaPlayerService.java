@@ -50,6 +50,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     public static Boolean shuffle = false;
 
+
     public static Boolean isPlaying = false;
 
     //List of available Audio files
@@ -82,8 +83,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         PLAYING,
         PAUSED
     }
-
-
 
     private void initMediaSession() throws RemoteException {
         if (mediaSessionManager != null) return; //mediaSessionManager exists
@@ -377,6 +376,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         else if(message.equals("sendMusicName")){
             broadcastIntent.putExtra("FromService",message);
             broadcastIntent.putExtra("MusicName",audioList.get(audioIndex).getTitle());
+            broadcastIntent.putExtra("musicArtist",audioList.get(audioIndex).getArtist());
+            MainActivity.musicArtist = audioList.get(audioIndex).getArtist();
         }
         else if(message.equals("getCurrentPosition")){
             broadcastIntent.putExtra("FromService",message);
