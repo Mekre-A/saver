@@ -7,6 +7,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.os.Handler;
@@ -16,9 +19,13 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.MediaController;
@@ -51,6 +58,7 @@ public class SoloMusicActivity extends AppCompatActivity {
     SeekBar seek;
     int seekbarChange = 0;
     FrameLayout fragmentLayout;
+    RelativeLayout mContainerView;
 
 
 
@@ -115,6 +123,9 @@ public class SoloMusicActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_solo_music);
         register_getContentFromService();
 
@@ -174,6 +185,7 @@ public class SoloMusicActivity extends AppCompatActivity {
 
         play = (ImageView) findViewById(R.id.play_button);
         play.setBackgroundResource(R.drawable.ic_pause_black_24dp);
+
         play.setOnClickListener(new ImageView.OnClickListener(){
 
             public void onClick(View v){
@@ -279,6 +291,14 @@ seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
     }
 });
+
+        mContainerView = (RelativeLayout) findViewById(R.id.container);
+        Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.image2);
+        Bitmap blurredBitmap = BlurBuilder.blur( this, originalBitmap );
+        mContainerView.setBackground(new BitmapDrawable(getResources(), blurredBitmap));
+
+
+
     }
 
     @Override

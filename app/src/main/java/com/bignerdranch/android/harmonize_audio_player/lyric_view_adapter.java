@@ -2,6 +2,7 @@ package com.bignerdranch.android.harmonize_audio_player;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,11 +36,17 @@ public class lyric_view_adapter extends RecyclerView.Adapter<lyric_view_holder> 
     public void onBindViewHolder(lyric_view_holder holder, int position) {
 
         holder.line.setText(list.get(position));
+        Log.i("holder","life " + list.get(position));
 
     }
 
     @Override
     public int getItemCount() {
         return 0;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
     }
 }

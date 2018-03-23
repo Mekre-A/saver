@@ -3,6 +3,7 @@ package com.bignerdranch.android.harmonize_audio_player;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -42,8 +43,6 @@ public class LyricsFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.lyrics_fragment,container,false);
 
-        lyricView = (TextView) view.findViewById(R.id.lyricView);
-
         File file = new File(Environment.getExternalStorageDirectory(),"Lyrics/Lyrics.json");
 
         StringBuilder lyric = new StringBuilder();
@@ -65,8 +64,6 @@ public class LyricsFragment extends Fragment {
 
         }
 
-        lyricView.setText(lyric);
-
         //Collect individual lines and put them into an array
 
         try {
@@ -78,22 +75,28 @@ public class LyricsFragment extends Fragment {
                 Log.i("heyhey","lifeeeeeee \n" + obj);
 
                 lyricTimes.add(obj.getString((String)obj.keys().next()));
+
             }
 
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
+        Log.i("heyyy","bicchhh\n" + lyricTimes);
         //populate each line of lyric into a recyclerview by passing the array to the adapter
 
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview);
-        lyric_view_adapter adapter = new lyric_view_adapter(lyricTimes,getActivity());
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         return view;
     }
+        @Override
+    public void onViewCreated(View view, Bundle savedInstanceState){
+            super.onViewCreated(view,savedInstanceState);
+            Log.i("heyyy","biccasdfadsfadfahhh\n" + lyricTimes);
+            RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.lyricRecycler);
+            lyric_view_adapter adapter = new lyric_view_adapter(lyricTimes,getActivity());
+            recyclerView.setAdapter(adapter);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+        }
 
 }
